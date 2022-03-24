@@ -1,0 +1,11 @@
+{
+  "targets": {
+    "fir-rtc-56621": {
+      "hosting": {
+        "video-calling-app": [
+          "fir-rtc-56621"
+        ]
+      }
+    }
+  }
+}

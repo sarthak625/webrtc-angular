@@ -1,0 +1,25 @@
+.call-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .buttons {
+        display: flex;
+        justify-content: space-between;
+        width: 220px;
+        font-size: 2rem;
+
+        .button {
+            border: 1px solid #fff;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            vertical-align: middle;
+            justify-content: center;
+            align-items: center;
+            background-color: #BEE3DB;
+            cursor: pointer;
+        }
+    }
+}

@@ -1,0 +1,34 @@
+<div class="landing">
+    <div class="title">
+        <span>🎥 🤙🏻 WebRTC Video Calling</span>
+    </div>
+
+    <hr class="style-seven"/>
+
+    <div class="info">
+        <p>There are two implementations in place here:</p>
+        <p>➡️ one to one call works with a Firestore signalling server. The caller creates an offer and the joinee provides an answer to establish connection</p>
+        <p>➡️ A group call relies on a SFU(Selective Forwarding Unit) which is capable of receiving multiple media streams and decides which stream goes to which customer</p>
+    </div>
+
+    <hr class="style-seven"/>
+    
+    <div class="options">
+        <div class="title">
+            <span>Choose one of the below options to continue</span>
+        </div>
+
+        <div class="card-container">
+            <div class="card" (click)="onOneToOneCall()">
+                <span>
+                    📞 One to One Call
+                </span>
+            </div>
+            <div class="card" (click)="onGroupCall()">
+                <span>
+                    👨‍👩‍👧 Group Call
+                </span>
+            </div>
+        </div>
+    </div>
+</div>

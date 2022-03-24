@@ -3,14 +3,26 @@ import { BrowserModule } from '@angular/platform-browser';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
+import { LandingComponent } from './landing/landing.component';
+import { LoaderComponent } from './loader/loader.component';
+import { FooterComponent } from './footer/footer.component';
+import { OnetoonecallComponent } from './onetoonecall/onetoonecall.component';
+import { GroupcallComponent } from './groupcall/groupcall.component';
+import { CallControlsComponent } from './call-controls/call-controls.component';
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    LandingComponent,
+    LoaderComponent,
+    FooterComponent,
+    OnetoonecallComponent,
+    GroupcallComponent,
+    CallControlsComponent
   ],
   imports: [
     BrowserModule,
-    AppRoutingModule
+    AppRoutingModule,
   ],
   providers: [],
   bootstrap: [AppComponent]

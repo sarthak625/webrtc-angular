@@ -1,0 +1,19 @@
+<div class="onetoone">
+    <div class="remote-view">
+        <video id="remote-view-element" class="video" autoplay></video>
+    </div>
+    <div class="self-view"
+    draggable="true"
+    (dragstart)="onDragStart($event)"
+    (dragend)="onDragEnd($event)"
+    (drag)="onDrag($event)"
+    [ngStyle]="{'top': remoteViewTop, 'left': remoteViewLeft}"
+    [ngClass]="isBeingDragged ? 'hide' : ''"
+    >
+        <video id="self-view-element" class="video" autoplay></video>
+    </div>
+
+    <div class="call-controls-div">
+        <app-call-controls></app-call-controls>
+    </div>
+</div>
