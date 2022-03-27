@@ -8,7 +8,7 @@ import {
   CommonService,
 } from '../services';
 
-import {NgbModal, ModalDismissReasons } from '@ng-bootstrap/ng-bootstrap';
+import {NgbModal, ModalDismissReasons, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 
 import Swal from 'sweetalert2';
 @Component({
@@ -46,6 +46,8 @@ export class OnetoonecallComponent implements OnInit, OnDestroy {
   disallowSwalFire = false;
   isCalling = true;
 
+  modalReference: NgbModalRef;
+
   async requestForNameUntilProvided(hasRequestedBefore) {
     if (this.disallowSwalFire) return;
     let title = 'Please enter your name';
@@ -65,7 +67,11 @@ export class OnetoonecallComponent implements OnInit, OnDestroy {
       console.log('Is calling changed');
       console.log({ data });
       if (data) {
-        this.modalService.open(this.myModal, { centered: true, modalDialogClass: 'dark-modal' });
+        this.modalReference = this.modalService.open(this.myModal, { centered: true, modalDialogClass: 'dark-modal' });
+      } else {
+        if (this.modalReference) {
+          this.modalReference.close();
+        }
       }
     });
     return data;

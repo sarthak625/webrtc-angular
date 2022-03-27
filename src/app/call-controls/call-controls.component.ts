@@ -87,6 +87,7 @@ export class CallControlsComponent implements OnInit {
       console.log({ data });
       const { answer } = data;
       console.log({ answer });
+      this.commonService.setIsCalling(false);
       if (!pc.currentRemoteDescription && answer) {
         console.log('On answer and !currentRemoteDescription');
         const answerDescription = new RTCSessionDescription(answer);
