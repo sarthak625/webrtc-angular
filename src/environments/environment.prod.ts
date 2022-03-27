@@ -8,4 +8,12 @@ export const environment = {
     ],
     iceCandidatePoolSize: 10,
   },
+  firebase: {
+    apiKey: "AIzaSyBfDEz8khr6A4h8A1zsVIrFTCBpOvmH3hU",
+    authDomain: "fir-rtc-56621.firebaseapp.com",
+    projectId: "fir-rtc-56621",
+    storageBucket: "fir-rtc-56621.appspot.com",
+    messagingSenderId: "758530780526",
+    appId: "1:758530780526:web:1ecd0335d614ee4829e57f"
+  }
 };

@@ -1,7 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import Swal from 'sweetalert2';
-import { FirebaseService, RtcService } from '../services';
+import {
+  FirebaseService,
+  RtcService,
+  ParticipantService,
+  SocketService,
+  StreamService,
+  CommonService,
+} from '../services';
+
+import {NgbModal, ModalDismissReasons } from '@ng-bootstrap/ng-bootstrap';
 
 @Component({
   selector: 'app-call-controls',
@@ -14,28 +23,52 @@ export class CallControlsComponent implements OnInit {
     private firebaseService: FirebaseService,
     private rtcService: RtcService,
     private router: Router,
+    private participantService: ParticipantService,
+    private modalService: NgbModal,
+    private socketService: SocketService,
+    private streamService: StreamService,
+    private commonService: CommonService,
   ) { }
 
   callId;
+  participants;
+  currentUser;
 
   ngOnInit(): void {
+    this.socketService.listenEvent('call-received', (data) => {
+      console.log({ data });
+      console.log('call-received');
+      this.answerCall(data);
+    });
   }
 
-  async initiateCreateCall() {
-    const callDoc = this.firebaseService.createDocForCollection('calls');
-    const offerCandidates = callDoc.collection('offerCandidates');
-    const answerCandidates = callDoc.collection('answerCandidates');
+  async createCallDocForCollection(userSocketId): Promise<any> {
+    return new Promise((resolve, _reject) => {
+      this.socketService.sendEvent('create-call-doc', { userSocketId }, (result) => {
+        resolve(result);
+      });
+    });
+  }
 
+  async initiateCreateCall(userSocketId) {
+    const callDoc = await this.createCallDocForCollection(userSocketId);
+    // const offerCandidates = callDoc.collection('offerCandidates');
+    // const answerCandidates = callDoc.collection('answerCandidates');
+
+    console.log({ callDoc });
     this.callId = callDoc.id;
 
     const pc = this.rtcService.getPeerConnection();
-    // Get candidates for caller, save to db
+    // // Get candidates for caller, save to db
     pc.onicecandidate = (event) => {
       console.log('Ice candidate event received');
-      event.candidate && offerCandidates.add(event.candidate.toJSON());
+      event.candidate && this.socketService.sendEvent('add-offer-candidate', {
+        candidate: event.candidate.toJSON(),
+        id: callDoc.id,
+      }, () => {});
     };
 
-    // Create offer
+    // // Create offer
     const offerDescription = await pc.createOffer();
     await pc.setLocalDescription(offerDescription);
 
@@ -44,66 +77,74 @@ export class CallControlsComponent implements OnInit {
       type: offerDescription.type,
     };
 
-    console.log('Offer created and stored in firestore');
-    await callDoc.set({ offer });
+    console.log('Offer created and stored in redis');
+    this.socketService.sendEvent('add-offer', { offer, id: callDoc.id, userSocketId }, () => {
+    });
 
     // Listen for remote answer
-    callDoc.onSnapshot((snapshot) => {
-      console.log('Answer received');
-      const data = snapshot.data();
-      if (!pc.currentRemoteDescription && data?.answer) {
-        const answerDescription = new RTCSessionDescription(data.answer);
+    this.socketService.listenEvent('on-answer-received', (data) => {
+      console.log('on-answer-received');
+      console.log({ data });
+      const { answer } = data;
+      console.log({ answer });
+      if (!pc.currentRemoteDescription && answer) {
+        console.log('On answer and !currentRemoteDescription');
+        const answerDescription = new RTCSessionDescription(answer);
         pc.setRemoteDescription(answerDescription);
       }
     });
 
+
     // When answered, add candidate to peer connection
-    answerCandidates.onSnapshot((snapshot) => {
-      console.log('Answer candidate received');
-      snapshot.docChanges().forEach((change) => {
-        if (change.type === 'added') {
-          const candidate = new RTCIceCandidate(change.doc.data());
-          pc.addIceCandidate(candidate);
-        }
-      });
+    this.socketService.listenEvent('on-answer-candidate-received', (data) => {
+      console.log('on-answer-candidate-received');
+      const { answerCandidate } = data;
+      console.log(answerCandidate);
+      const candidate = new RTCIceCandidate(answerCandidate);
+      pc.addIceCandidate(candidate);
     });
 
-    Swal.fire(`You have initiated a call with call id: ${this.callId}`);
+    this.commonService.setIsCalling(true);
+  }
 
+  open(content) {
+    this.currentUser = this.participantService.getCurrentUser();
+    this.socketService.getEvent('get-connected-users', (data) => {
+      this.participants = data;
+      this.modalService.open(content, {ariaLabelledBy: 'modal-basic-title'}).result.then((result) => {
+        const socketIdToConnectWith = result;
+        this.initiateCreateCall(socketIdToConnectWith)
+          .then((result) => {
+            console.log({ result });
+          })
+          .catch(console.log);
+      }, (reason) => {
+        console.log(`Dismissed ${reason}`);
+      });
+    })
   }
 
   async initiateJoinCall() {
-    const data = await Swal.fire({
-      title: 'Enter call id',
-      input: 'text', inputPlaceholder: 'Call Id'
-    });
-    const callId = data?.value?.trim();
 
-    if (!callId) {
-      Swal.fire(
-        'Error',
-        'You need to enter callId to join a call',
-        'error'
-      )
-      return;
-    }
+  }
 
+  async answerCall(callDoc: any) {
+    const callId = callDoc.id;
     const pc = this.rtcService.getPeerConnection();
     console.log(`Answering call ${callId}`);
-    const callDoc = this.firebaseService.getCallDocById('calls', callId);
-    const answerCandidates = callDoc.collection('answerCandidates');
-    const offerCandidates = callDoc.collection('offerCandidates');
 
     pc.onicecandidate = (event) => {
       console.log('On Ice candidate');
-      event.candidate && answerCandidates.add(event.candidate.toJSON());
+      event.candidate && this.socketService.sendEvent('add-answer-candidate', {
+        candidate: event.candidate.toJSON(),
+        id: callDoc.id,
+      }, () => {});;
     };
 
-    const callData = (await callDoc.get()).data();
+    console.log('Fetch call data from redis');
+    console.log({ callDoc });
 
-    console.log('Fetch call data from firestore');
-
-    const offerDescription = callData.offer;
+    const offerDescription = callDoc.offer;
     await pc.setRemoteDescription(new RTCSessionDescription(offerDescription));
 
     const answerDescription = await pc.createAnswer();
@@ -114,19 +155,21 @@ export class CallControlsComponent implements OnInit {
       sdp: answerDescription.sdp,
     };
 
-    await callDoc.update({ answer });
+    this.socketService.sendEvent('add-answer', { answer, id: callDoc.id }, () => {
+    });
 
-    offerCandidates.onSnapshot((snapshot) => {
-      snapshot.docChanges().forEach((change) => {
-        if (change.type === 'added') {
-          let data = change.doc.data();
-          pc.addIceCandidate(new RTCIceCandidate(data));
-        }
-      });
+    this.socketService.listenEvent('on-offer-candidate-received', (data) => {
+      console.log('on-offer-candidate-received');
+      console.log({ data });
+      const { offerCandidate } = data;
+      const candidate = new RTCIceCandidate(offerCandidate);
+      pc.addIceCandidate(candidate);
     });
   }
 
   hangupCall() {
+    this.rtcService.closePeerConnection();
+    this.streamService.disconnectLocalAndRemoteStreams();
     this.router.navigate(['/']);
   }
 }

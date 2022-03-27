@@ -10,10 +10,27 @@
     [ngStyle]="{'top': remoteViewTop, 'left': remoteViewLeft}"
     [ngClass]="isBeingDragged ? 'hide' : ''"
     >
-        <video id="self-view-element" class="video" autoplay></video>
+        <video id="self-view-element" class="video" autoplay muted></video>
     </div>
 
     <div class="call-controls-div">
         <app-call-controls></app-call-controls>
+    </div>
+    
+    <div class="calling">
+        <ng-template #callingmodal let-modal>
+            <div class="modal-header">
+              <h4 class="modal-title" id="modal-basic-title">Calling</h4>
+              <button type="button" class="close" aria-label="Close" (click)="modal.dismiss('Cross click')">
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+
+            <div class="modal-body">
+                <div>
+                    Call has been initiated. Please wait while we are connecting you.
+                </div>
+            </div>
+        </ng-template>
     </div>
 </div>

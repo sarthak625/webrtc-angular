@@ -1,15 +1,36 @@
 <div class="call-controls">
-    <div class="buttons">
-        <div class="call-button button" title="Call Someone" (click)="initiateCreateCall()">
-            📞
-        </div>
-        
-        <div class="join-button button" title="Join Call" (click)="initiateJoinCall()">
-            🙏🏻
-        </div>
-        
-        <div class="hangup-button button" title="Join Call" (click)="hangupCall()">
-            ❌
-        </div>
+  <div class="buttons">
+    <div class="call-button button" title="Call Someone" (click)="open(mymodal)">
+      📞
     </div>
+
+    <!-- <div class="join-button button" title="Join Call" (click)="open(mymodal)">
+      🙏🏻
+    </div> -->
+
+    <div class="hangup-button button" title="Join Call" (click)="hangupCall()">
+      ❌
+    </div>
+  </div>
 </div>
+
+<ng-template #mymodal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title" id="modal-basic-title">Online Participants</h4>
+    <button type="button" class="close" aria-label="Close" (click)="modal.dismiss('Cross click')">
+      <span aria-hidden="true">×</span>
+    </button>
+  </div>
+  <div class="modal-body" *ngIf="participants">
+    <div *ngFor="let participant of participants">
+        <span class="participant">{{ participant.username }}
+            <button class="btn btn-success" *ngIf="currentUser.socketId !== participant.socketId" (click)="modal.close(participant.socketId)">
+                Call
+            </button>
+        </span>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline-dark" (click)="modal.close('Save click')">Ok</button>
+  </div>
+</ng-template>

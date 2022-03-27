@@ -9,6 +9,13 @@ import { FooterComponent } from './footer/footer.component';
 import { OnetoonecallComponent } from './onetoonecall/onetoonecall.component';
 import { GroupcallComponent } from './groupcall/groupcall.component';
 import { CallControlsComponent } from './call-controls/call-controls.component';
+import { HttpClientModule } from  '@angular/common/http';
+import { SocketService } from './services';
+
+import { environment } from 'src/environments/environment';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { CallingComponent } from './calling/calling.component';
+
 
 @NgModule({
   declarations: [
@@ -18,13 +25,19 @@ import { CallControlsComponent } from './call-controls/call-controls.component';
     FooterComponent,
     OnetoonecallComponent,
     GroupcallComponent,
-    CallControlsComponent
+    CallControlsComponent,
+    CallingComponent,
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
+    HttpClientModule,
+    NgbModule,
   ],
-  providers: [],
+  providers: [
+    SocketService,
+  ],
   bootstrap: [AppComponent]
 })
+
 export class AppModule { }

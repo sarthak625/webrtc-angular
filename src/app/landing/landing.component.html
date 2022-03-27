@@ -7,7 +7,7 @@
 
     <div class="info">
         <p>There are two implementations in place here:</p>
-        <p>➡️ one to one call works with a Firestore signalling server. The caller creates an offer and the joinee provides an answer to establish connection</p>
+        <p>➡️ one to one call works with a signalling server. The caller creates an offer and the joinee provides an answer to establish connection</p>
         <p>➡️ A group call relies on a SFU(Selective Forwarding Unit) which is capable of receiving multiple media streams and decides which stream goes to which customer</p>
     </div>
 
@@ -19,12 +19,12 @@
         </div>
 
         <div class="card-container">
-            <div class="card" (click)="onOneToOneCall()">
+            <div class="custom-card" (click)="onOneToOneCall()">
                 <span>
                     📞 One to One Call
                 </span>
             </div>
-            <div class="card" (click)="onGroupCall()">
+            <div class="custom-card" (click)="onGroupCall()">
                 <span>
                     👨‍👩‍👧 Group Call
                 </span>

@@ -1,5 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { SocketService, RestService } from '../services';
+
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-landing',
@@ -13,6 +16,7 @@ export class LandingComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
+    
   }
 
   onOneToOneCall() {

@@ -18,4 +18,8 @@ export class RtcService {
   getPeerConnection() {
     return this.pc;
   }
+
+  closePeerConnection() {
+    return this.pc.close();
+  }
 }
