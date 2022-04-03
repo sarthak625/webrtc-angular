@@ -28,8 +28,13 @@ export class SocketService {
   }
 
   listenEvent(event: String, handler: Function) {
-    console.log(event);
-    this.socket.on(event, handler);
+    if (this.socket && this.socket.on) {
+      console.log(`Listening to ${event}`);
+      this.socket.on(event, handler);
+    } else {
+      console.error(`Failed to listen to ${event}`);
+      setTimeout(() => this.listenEvent(event, handler), 2000);
+    }
   }
 
   joinRoom(event: String) {

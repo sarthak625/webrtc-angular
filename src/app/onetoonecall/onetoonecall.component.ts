@@ -1,6 +1,5 @@
 import { Component, OnInit, NgZone, ElementRef, Renderer2, OnDestroy, ViewChild } from '@angular/core';
 import {
-  FirebaseService,
   RtcService,
   SocketService,
   ParticipantService,
@@ -22,7 +21,6 @@ export class OnetoonecallComponent implements OnInit, OnDestroy {
     private ngZone: NgZone,
     private elRef: ElementRef,
     private renderer: Renderer2,
-    private firebaseService: FirebaseService,
     private rtcService: RtcService,
     private socketService: SocketService,
     private participantService: ParticipantService,
@@ -88,7 +86,17 @@ export class OnetoonecallComponent implements OnInit, OnDestroy {
 
   requestForCameraAndMicrophone() {
     console.log('req for cam and mic')
-    return navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    return navigator.mediaDevices.getUserMedia({
+      video: {
+        width: {
+          exact: 1280,
+        },
+        height: {
+          exact: 720,
+        }
+      },
+      audio: true,
+    });
   }
 
   hasUserMedia() {
@@ -98,7 +106,6 @@ export class OnetoonecallComponent implements OnInit, OnDestroy {
   handlePermissionsProvided(stream) {
     this.hasAllowedVideoAudioPermission = true;
     const pc = this.rtcService.initializeRTC();
-    this.firebaseService.initializeFirebase();
 
     this.streamService.setLocalStream(stream);
     this.streamService.setRemoteStream(new MediaStream());
@@ -111,8 +118,12 @@ export class OnetoonecallComponent implements OnInit, OnDestroy {
     // Pull tracks from remote stream, add to video stream
     pc.ontrack = (event) => {
       event.streams[0].getTracks().forEach((track) => {
+        if (track.kind === 'video' && this.commonService.getIsCalling()) {
+          this.commonService.setIsCalling(false);
+        }
         if (this.streamService.getRemoteStream()) {
           console.log('Remote stream received');
+          console.log({ track })
           this.streamService.setRemoteStreamTrack(track);
         }
       });
@@ -120,7 +131,6 @@ export class OnetoonecallComponent implements OnInit, OnDestroy {
 
     this.assignVideoStreamToElementId('#self-view-element', this.streamService.getLocalStream(), true);
     this.assignVideoStreamToElementId('#remote-view-element', this.streamService.getRemoteStream(), false);
-
   }
 
   requestForCameraAndMicPermissionsUntilProvided() {

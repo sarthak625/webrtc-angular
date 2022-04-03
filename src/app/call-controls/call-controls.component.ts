@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import Swal from 'sweetalert2';
 import {
-  FirebaseService,
   RtcService,
   ParticipantService,
   SocketService,
@@ -20,7 +19,6 @@ import {NgbModal, ModalDismissReasons } from '@ng-bootstrap/ng-bootstrap';
 export class CallControlsComponent implements OnInit {
 
   constructor(
-    private firebaseService: FirebaseService,
     private rtcService: RtcService,
     private router: Router,
     private participantService: ParticipantService,
@@ -87,7 +85,9 @@ export class CallControlsComponent implements OnInit {
       console.log({ data });
       const { answer } = data;
       console.log({ answer });
-      this.commonService.setIsCalling(false);
+      // this.commonService.setIsCalling(false);
+      console.log('Current Remote description');
+      console.log(pc.currentRemoteDescription);
       if (!pc.currentRemoteDescription && answer) {
         console.log('On answer and !currentRemoteDescription');
         const answerDescription = new RTCSessionDescription(answer);
@@ -134,12 +134,18 @@ export class CallControlsComponent implements OnInit {
     const pc = this.rtcService.getPeerConnection();
     console.log(`Answering call ${callId}`);
 
+    let numberOfIceCandidatesReceived = 1;
+
     pc.onicecandidate = (event) => {
       console.log('On Ice candidate');
+      numberOfIceCandidatesReceived ++;
+      console.log({ candidate: event.candidate && event.candidate.toJSON() });
+      console.log({ numberOfIceCandidatesReceived });
+
       event.candidate && this.socketService.sendEvent('add-answer-candidate', {
         candidate: event.candidate.toJSON(),
         id: callDoc.id,
-      }, () => {});;
+      }, () => {});
     };
 
     console.log('Fetch call data from redis');
