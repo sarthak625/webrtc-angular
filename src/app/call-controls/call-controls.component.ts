@@ -31,6 +31,7 @@ export class CallControlsComponent implements OnInit {
   callId;
   participants;
   currentUser;
+  isChatToggled = false;
 
   ngOnInit(): void {
     this.socketService.listenEvent('call-received', (data) => {
@@ -172,6 +173,11 @@ export class CallControlsComponent implements OnInit {
       const candidate = new RTCIceCandidate(offerCandidate);
       pc.addIceCandidate(candidate);
     });
+  }
+
+  async openChat() {
+    this.isChatToggled = !this.isChatToggled;
+    this.commonService.setIsChatToggled(this.isChatToggled);
   }
 
   hangupCall() {

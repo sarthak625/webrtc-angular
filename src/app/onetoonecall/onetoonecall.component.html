@@ -33,4 +33,18 @@
             </div>
         </ng-template>
     </div>
+
+    <div class="chat" *ngIf="isChatToggled">
+        <!-- <div class="heading">
+            <span>Chat</span>
+        </div> -->
+
+        <div class="chat-area" #chatArea>
+        </div>
+
+        <div class="message-input">
+            <input type="text" name="messageInput" [(ngModel)]="messageInput" #ctrl="ngModel" (keydown)="sendMessage($event)">
+            <button (click)="sendMessage(null)">➡️</button>
+        </div>
+    </div>
 </div>

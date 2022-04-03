@@ -37,6 +37,69 @@
         bottom: 40px;
         width: 100%;
     }
+
+    .chat {
+        position: absolute;
+        top: 0px;
+        right: 0px;
+        width: 20%;
+        height: 100%;
+        border: 1px solid #f1dfdf;
+        border-radius: 2px;
+        padding: 5px;
+        padding-top: 10px;
+
+        .heading {
+            text-align: center;
+        }
+
+        .chat-area {
+            height: 90%;
+            overflow: scroll;
+            padding-top: 10px;
+
+            .text-msg {
+                padding: 10px;
+                border-radius: 5px;
+                margin-bottom: 4px;
+            }
+
+            .text-local {
+                background: #edd698;
+                // width: max-content;
+               
+            }
+            
+            .text-remote {
+                background: #99ed98;
+                // width: max-content;
+                padding: 10px;
+                margin-left: 10px;
+            }
+        }
+
+        .message-input {
+            height: 7%;
+            input {
+                width: 100%;
+                height: 100%;
+                border: 1px solid #f1dfdf;
+                border-radius: 5px;
+            }
+
+            button {
+                background: none;
+                color: inherit;
+                border: none;
+                padding: 0;
+                font: inherit;
+                cursor: pointer;
+                outline: inherit;
+                position: absolute;
+                right: 15px;
+            }
+        }
+    }
 }
 
 @media screen and (max-width: 480px) {
