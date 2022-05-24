@@ -6,7 +6,7 @@
     .buttons {
         display: flex;
         justify-content: space-around;
-        width: 220px;
+        width: 300px;
         font-size: 2rem;
 
         .button {
@@ -20,6 +20,13 @@
             align-items: center;
             background-color: #BEE3DB;
             cursor: pointer;
+            transition: 0.5s ease-in;
+        }
+
+        .button:hover {
+            background-color: #389ce8;
+            border: 1px solid #007fe0;
+            transition: 0.2s ease-out;
         }
     }
 }

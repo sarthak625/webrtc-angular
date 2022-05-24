@@ -5,8 +5,8 @@ import { environment } from 'src/environments/environment';
   providedIn: 'root'
 })
 export class RtcService {
-
   pc;
+  pc2;
   chatChannel;
 
   constructor() {
@@ -14,14 +14,26 @@ export class RtcService {
 
   initializeRTC() {
     this.pc = new RTCPeerConnection(environment.servers);
-    return this.pc;
+    this.pc2 = new RTCPeerConnection(environment.servers);
+    return {
+      pc: this.pc,
+      pc2: this.pc2,
+    };
   }
 
   getPeerConnection() {
     return this.pc;
   }
+  
+  getPeerConnection2() {
+    return this.pc;
+  }
 
   closePeerConnection() {
+    return this.pc.close();
+  }
+  
+  closePeerConnection2() {
     return this.pc.close();
   }
 

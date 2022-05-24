@@ -58,6 +58,7 @@ export class OnetoonecallComponent implements OnInit, OnDestroy {
   isChatToggled = false;
 
   messageInput: string = '';
+  isScreenShareRunning = false;
 
   ngOnInit(): void {
     this
@@ -113,6 +114,7 @@ export class OnetoonecallComponent implements OnInit, OnDestroy {
 
   assignVideoStreamToElementId(elementId: string, stream, isMuted: Boolean) {
     const player = this.elRef.nativeElement.querySelector(elementId);
+    console.log({ player });
     player.srcObject = stream;
     if (isMuted) {
       player.muted = true;
@@ -238,33 +240,55 @@ export class OnetoonecallComponent implements OnInit, OnDestroy {
 
   handlePermissionsProvided(stream) {
     this.hasAllowedVideoAudioPermission = true;
-    const pc = this.rtcService.initializeRTC();
+    const { pc, pc2 } = this.rtcService.initializeRTC();
     this.initializeChat(pc);
 
     this.streamService.setLocalStream(stream);
     this.streamService.setRemoteStream(new MediaStream());
+    this.streamService.setScreenShareStream(new MediaStream());
 
     // Push tracks from local stream to peer connection
     this.streamService.getLocalStreamTracks().forEach((track) => {
+      console.log(`LOCAL TRACK ========>`);
+      console.log(track);
       pc.addTrack(track, this.streamService.getLocalStream());
+    });
+
+    // Push tracks from local share stream to peer connection
+    this.streamService.getScreenShareStreamTracks().forEach((track) => {
+      console.log(`SCREEN SHARE TRACK ========>`);
+      console.log(track);
+      pc.addTrack(track, this.streamService.getScreenShareStream());
     });
 
     // Pull tracks from remote stream, add to video stream
     pc.ontrack = (event) => {
+      console.log(`PULL TRACK =====>`);
+      console.log(event.streams[0]);
       event.streams[0].getTracks().forEach((track) => {
+        console.log(`Get track`);
+        console.log({ track });
         if (track.kind === 'video' && this.commonService.getIsCalling()) {
           this.commonService.setIsCalling(false);
         }
-        if (this.streamService.getRemoteStream()) {
-          console.log('Remote stream received');
-          console.log({ track })
-          this.streamService.setRemoteStreamTrack(track);
-        }
+        this.streamService.setRemoteStreamTrack(track);
+      });
+    };
+    
+    // Pull tracks from remote stream, add to video stream
+    pc2.ontrack = (event) => {
+      console.log(`PULL TRACK =====>`);
+      console.log(event.streams[0]);
+      event.streams[0].getTracks().forEach((track) => {
+        console.log(`Get track`);
+        console.log({ track });
+        this.streamService.setShareStreamTrack(track);
       });
     };
 
     this.assignVideoStreamToElementId('#self-view-element', this.streamService.getLocalStream(), true);
     this.assignVideoStreamToElementId('#remote-view-element', this.streamService.getRemoteStream(), false);
+    this.assignVideoStreamToElementId('#screen-share-view-element', this.streamService.getScreenShareStream(), false);
   }
 
   requestForCameraAndMicPermissionsUntilProvided() {

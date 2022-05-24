@@ -58,6 +58,8 @@ export class CallControlsComponent implements OnInit {
     this.callId = callDoc.id;
 
     const pc = this.rtcService.getPeerConnection();
+    const pc2 = this.rtcService.getPeerConnection2();
+
     // // Get candidates for caller, save to db
     pc.onicecandidate = (event) => {
       console.log('Ice candidate event received');
@@ -71,20 +73,29 @@ export class CallControlsComponent implements OnInit {
     const offerDescription = await pc.createOffer();
     await pc.setLocalDescription(offerDescription);
 
+    // // Create offer
+    const offerDescription2 = await pc2.createOffer();
+    await pc2.setLocalDescription(offerDescription2);
+
     const offer = {
       sdp: offerDescription.sdp,
       type: offerDescription.type,
     };
 
+    const offer2 = {
+      sdp: offerDescription2.sdp,
+      type: offerDescription2.type,
+    };
+
     console.log('Offer created and stored in redis');
-    this.socketService.sendEvent('add-offer', { offer, id: callDoc.id, userSocketId }, () => {
+    this.socketService.sendEvent('add-offer', { offer, id: callDoc.id, userSocketId, offer2 }, () => {
     });
 
     // Listen for remote answer
     this.socketService.listenEvent('on-answer-received', (data) => {
       console.log('on-answer-received');
       console.log({ data });
-      const { answer } = data;
+      const { answer, answer2 } = data;
       console.log({ answer });
       // this.commonService.setIsCalling(false);
       console.log('Current Remote description');
@@ -93,6 +104,11 @@ export class CallControlsComponent implements OnInit {
         console.log('On answer and !currentRemoteDescription');
         const answerDescription = new RTCSessionDescription(answer);
         pc.setRemoteDescription(answerDescription);
+      }
+      if (!pc2.currentRemoteDescription && answer2) {
+        console.log('On answer and !currentRemoteDescription');
+        const answerDescription = new RTCSessionDescription(answer2);
+        pc2.setRemoteDescription(answerDescription);
       }
     });
 
@@ -104,6 +120,7 @@ export class CallControlsComponent implements OnInit {
       console.log(answerCandidate);
       const candidate = new RTCIceCandidate(answerCandidate);
       pc.addIceCandidate(candidate);
+      pc2.addIceCandidate(candidate);
     });
 
     this.commonService.setIsCalling(true);
@@ -114,6 +131,7 @@ export class CallControlsComponent implements OnInit {
     this.socketService.getEvent('get-connected-users', (data) => {
       this.participants = data;
       this.modalService.open(content, {ariaLabelledBy: 'modal-basic-title'}).result.then((result) => {
+        if (result === 'Save click') return;
         const socketIdToConnectWith = result;
         this.initiateCreateCall(socketIdToConnectWith)
           .then((result) => {
@@ -126,13 +144,10 @@ export class CallControlsComponent implements OnInit {
     })
   }
 
-  async initiateJoinCall() {
-
-  }
-
   async answerCall(callDoc: any) {
     const callId = callDoc.id;
     const pc = this.rtcService.getPeerConnection();
+    const pc2 = this.rtcService.getPeerConnection2();
     console.log(`Answering call ${callId}`);
 
     let numberOfIceCandidatesReceived = 1;
@@ -152,18 +167,33 @@ export class CallControlsComponent implements OnInit {
     console.log('Fetch call data from redis');
     console.log({ callDoc });
 
+    console.log('Setting SDP on offer 1');
     const offerDescription = callDoc.offer;
     await pc.setRemoteDescription(new RTCSessionDescription(offerDescription));
-
+    
+    console.log('Setting SDP on offer 2');
+    const offerDescription2 = callDoc.offer2;
+    await pc2.setRemoteDescription(new RTCSessionDescription(offerDescription2));
+    
+    console.log('Setting answer desc on offer 1');
     const answerDescription = await pc.createAnswer();
     await pc.setLocalDescription(answerDescription);
+    
+    console.log('Setting answer desc on offer 2');
+    const answerDescription2 = await pc2.createAnswer();
+    await pc2.setLocalDescription(answerDescription2);
 
     const answer = {
       type: answerDescription.type,
       sdp: answerDescription.sdp,
     };
 
-    this.socketService.sendEvent('add-answer', { answer, id: callDoc.id }, () => {
+    const answer2 = {
+      type: answerDescription2.type,
+      sdp: answerDescription2.sdp,
+    };
+
+    this.socketService.sendEvent('add-answer', { answer, answer2, id: callDoc.id }, () => {
     });
 
     this.socketService.listenEvent('on-offer-candidate-received', (data) => {
@@ -178,6 +208,38 @@ export class CallControlsComponent implements OnInit {
   async openChat() {
     this.isChatToggled = !this.isChatToggled;
     this.commonService.setIsChatToggled(this.isChatToggled);
+  }
+
+  requestScreenShare() {
+    return (<any> navigator.mediaDevices).getDisplayMedia({
+      video: {
+        cursor: 'always',
+      },
+      audio: false,
+    });
+  }
+
+  async openScreenShare() {
+    this.requestScreenShare().then((stream) => {
+      console.log(stream);
+
+      this.streamService.getLocalStreamTracks().forEach((track) => {
+        console.log(`LOCAL TRACK ========>`);
+        console.log(track);
+        this.rtcService.getPeerConnection().addTrack(track, this.streamService.getScreenShareStream());
+      });
+
+      const videoTracks = this.streamService.getLocalStream().getVideoTracks();
+      console.log({ videoTracks });
+
+      if (videoTracks && videoTracks.length) {
+        videoTracks[0].onended = () => {
+          console.log(`Video tracks ended! Screen sharing stopped`);
+        }
+      }
+    }).catch((err) => {
+      console.error(err);
+    })
   }
 
   hangupCall() {

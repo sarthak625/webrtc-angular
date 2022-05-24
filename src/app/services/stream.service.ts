@@ -7,8 +7,9 @@ export class StreamService {
 
   localStream: MediaStream;
   remoteStream: MediaStream;
-  constructor() {
+  screenShareStream: MediaStream;
 
+  constructor() {
   }
 
   getLocalStream() {
@@ -17,6 +18,10 @@ export class StreamService {
   
   setLocalStream(stream) {
     this.localStream = stream;
+  }
+
+  setScreenShareStream(stream) {
+    this.screenShareStream = stream;
   }
 
   getRemoteStream() {
@@ -34,9 +39,21 @@ export class StreamService {
   getRemoteStreamTracks() {
     return this.remoteStream.getTracks();
   }
+
+  getScreenShareStream() {
+    return this.screenShareStream;
+  }
+
+  getScreenShareStreamTracks() {
+    return this.screenShareStream.getTracks();
+  }
   
   setRemoteStreamTrack(track) {
     return this.remoteStream.addTrack(track);
+  }
+  
+  setShareStreamTrack(track) {
+    return this.screenShareStream.addTrack(track);
   }
 
   disconnectLocalAndRemoteStreams() {
@@ -45,6 +62,9 @@ export class StreamService {
     }
     if (this.getRemoteStream()) {
       this.getRemoteStreamTracks().forEach((track: MediaStreamTrack) => track.stop());
+    }
+    if (this.getScreenShareStream()) {
+      this.getScreenShareStreamTracks().forEach((track: MediaStreamTrack) => track.stop());
     }
   }
 }
